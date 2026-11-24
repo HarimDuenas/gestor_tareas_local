@@ -54,16 +54,50 @@ class _TareasPageState extends State<TareasPage> {
     }
   }
 
-  void _alternarCompletada(Tarea tarea, bool completada) {
-    _pendiente('Implementar actualización de tarea');
+  Future<void> _alternarCompletada(Tarea tarea, bool completada) async {
+    try {
+      await _tareasRepository.cambiarEstado(tarea.id, completada);
+      if (!mounted) return;
+      await _cargarTareas();
+    } catch (e) {
+      if (!mounted) return;
+      _pendiente('No se pudo cambiar el estado de la tarea');
+    }
   }
 
-  void _editarTarea(Tarea tarea) {
-    _pendiente('Implementar edición de título');
+  Future<void> _editarTarea(Tarea tarea) async {
+    final nuevoTitulo = await showDialog<String>(
+      context: context,
+      builder: (_) => _EditarTituloDialogo(tituloInicial: tarea.titulo),
+    );
+    if (nuevoTitulo == null) return;
+
+    try {
+      final editada = await _tareasRepository.editarTitulo(
+        tarea.id,
+        nuevoTitulo,
+      );
+      if (!mounted) return;
+      if (!editada) {
+        _pendiente('El título no puede estar vacío');
+        return;
+      }
+      await _cargarTareas();
+    } catch (e) {
+      if (!mounted) return;
+      _pendiente('No se pudo editar la tarea');
+    }
   }
 
-  void _eliminarTarea(Tarea tarea) {
-    _pendiente('Implementar eliminación de tarea');
+  Future<void> _eliminarTarea(Tarea tarea) async {
+    try {
+      await _tareasRepository.eliminar(tarea.id);
+      if (!mounted) return;
+      await _cargarTareas();
+    } catch (e) {
+      if (!mounted) return;
+      _pendiente('No se pudo eliminar la tarea');
+    }
   }
 
   void _pendiente(String mensaje) {
@@ -146,6 +180,58 @@ class _TareasPageState extends State<TareasPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// Diálogo con su propio controlador: se libera en su dispose, cuando la
+// animación de cierre ya terminó.
+class _EditarTituloDialogo extends StatefulWidget {
+  const _EditarTituloDialogo({required this.tituloInicial});
+
+  final String tituloInicial;
+
+  @override
+  State<_EditarTituloDialogo> createState() => _EditarTituloDialogoState();
+}
+
+class _EditarTituloDialogoState extends State<_EditarTituloDialogo> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.tituloInicial);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Editar tarea'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        decoration: const InputDecoration(
+          labelText: 'Título',
+          border: OutlineInputBorder(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text),
+          child: const Text('Guardar'),
+        ),
+      ],
     );
   }
 }
