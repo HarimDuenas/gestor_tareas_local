@@ -8,5 +8,9 @@ void main() {
     expect(find.text('Gestor de tareas'), findsOneWidget);
     expect(find.text('Agregar tarea'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
+
+    // Se desmonta la pantalla para que Drift cierre la base antes de terminar.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(Duration.zero);
   });
 }

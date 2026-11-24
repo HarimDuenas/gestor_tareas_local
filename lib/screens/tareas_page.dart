@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../data/tareas_repository.dart';
 import '../models/tarea.dart';
 
 // Pantalla base SIN persistencia ni operaciones CRUD implementadas.
@@ -13,16 +14,44 @@ class TareasPage extends StatefulWidget {
 class _TareasPageState extends State<TareasPage> {
   final TextEditingController _tituloController = TextEditingController();
 
+  final TareasRepository _tareasRepository = TareasRepository();
+
   List<Tarea> _tareas = [];
 
   @override
   void initState() {
     super.initState();
-
+    _cargarTareas();
   }
 
-  void _agregarTarea() {
-    _pendiente('Implementar registro de tarea');
+  // La consulta se hace aquí y no dentro de build().
+  Future<void> _cargarTareas() async {
+    try {
+      final resultado = await _tareasRepository.listar();
+      if (!mounted) return;
+      setState(() {
+        _tareas = resultado;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      _pendiente('No se pudieron cargar las tareas');
+    }
+  }
+
+  Future<void> _agregarTarea() async {
+    try {
+      final agregada = await _tareasRepository.agregar(_tituloController.text);
+      if (!mounted) return;
+      if (!agregada) {
+        _pendiente('El título no puede estar vacío');
+        return;
+      }
+      _tituloController.clear();
+      await _cargarTareas();
+    } catch (e) {
+      if (!mounted) return;
+      _pendiente('No se pudo guardar la tarea');
+    }
   }
 
   void _alternarCompletada(Tarea tarea, bool completada) {
@@ -46,6 +75,7 @@ class _TareasPageState extends State<TareasPage> {
   @override
   void dispose() {
     _tituloController.dispose();
+    _tareasRepository.cerrar();
     super.dispose();
   }
 
