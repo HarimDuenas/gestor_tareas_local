@@ -11,6 +11,10 @@ En Windows:
 flutter pub get
 flutter run -d windows
 ```
+En Android, con el emulador encendido (el identificador sale de `flutter devices`):
+```
+flutter run -d emulator-5554
+```
 En el navegador:
 ```
 flutter run -d web-server --web-port 5000
@@ -38,26 +42,44 @@ Edición y eliminación van por `id`, no por la posición en la lista. El títul
 
 ## Dónde se guarda la base
 - **Windows:** archivo `gestor_tareas.sqlite` en la carpeta Documentos del usuario.
+- **Android:** archivo `gestor_tareas.sqlite` en la carpeta privada de la app (`app_flutter`), a la que otras apps no tienen acceso.
 - **Web:** almacenamiento del navegador, ligado al origen. Se necesitan `web/sqlite3.wasm` y `web/drift_worker.dart.js`, tomados del release `drift-2.35.4` de Drift, la misma versión que usa `pubspec.lock`. Si se actualiza `drift`, hay que actualizar también esos dos archivos.
 
 ## Plataformas
-El código está pensado para Android, iOS, Windows, Linux, macOS y web, pero solo probé dos:
+El código está pensado para Android, iOS, Windows, Linux, macOS y web. Probé tres, una por entorno:
 
-| Plataforma | Estado |
-|---|---|
-| Windows | Probada (P1 a P5) |
-| Web | Probada (P6) |
-| Android, iOS, Linux y macOS | Sin probar |
+| Entorno | Plataforma probada | Estado |
+|---|---|---|
+| Escritorio | Windows 11 | Probada (P1 a P5) |
+| Móvil | Android 15 (API 35), en el emulador Pixel 8 | Probada (P1 a P5) |
+| Web | Navegador, en `localhost:5000` | Probada (P6) |
+
+iOS, Linux y macOS quedan sin probar. Android se probó solo en emulador, no en un teléfono físico.
+
+## Capturas
+Windows:
+
+<img src="docs/capturas/windows.png" alt="La app en Windows con tres tareas, la segunda completada" width="640">
+
+Android, en el emulador:
+
+<img src="docs/capturas/android.png" alt="La app en Android con tres tareas, la segunda completada" width="260">
+
+Web:
+
+<img src="docs/capturas/web.png" alt="La app en el navegador con tres tareas, la segunda completada" width="640">
+
+Los `ID` de cada captura son distintos porque cada plataforma tiene su propia base y el `id` es autoincremental: no se reutilizan los números de las tareas que ya se habían borrado en pruebas anteriores.
 
 ## Pruebas manuales
-| ID | Qué hice | Plataforma | Resultado |
-|---|---|---|---|
-| P1 | Agregué 3 tareas, cerré la app y la volví a abrir | Windows | Pasó: las 3 siguieron ahí |
-| P2 | Marqué una tarea como completada y reinicié | Windows | Pasó: conservó el estado |
-| P3 | Cambié el título de una tarea y reinicié | Windows | Pasó: apareció el título nuevo |
-| P4 | Eliminé una tarea y reinicié | Windows | Pasó: no reapareció |
-| P5 | Intenté agregar un título vacío y otro de solo espacios | Windows | Pasó: no se agregaron y salió un mensaje |
-| P6 | Agregué tareas, recargué la página y cerré y abrí la pestaña en `localhost:5000` | Web | Pasó: las tareas permanecieron |
+| ID | Qué hice | Windows | Android | Web |
+|---|---|---|---|---|
+| P1 | Agregué 3 tareas, cerré la app y la volví a abrir | Pasó: las 3 siguieron ahí | Pasó: las 3 siguieron ahí | - |
+| P2 | Marqué una tarea como completada y reinicié | Pasó: conservó el estado | Pasó: conservó el estado | - |
+| P3 | Cambié el título de una tarea y reinicié | Pasó: apareció el título nuevo | Pasó: apareció el título nuevo | - |
+| P4 | Eliminé una tarea y reinicié | Pasó: no reapareció | Pasó: no reapareció | - |
+| P5 | Intenté agregar un título vacío y otro de solo espacios | Pasó: no se agregaron y salió un mensaje | Pasó: no se agregó en ninguno de los dos casos | - |
+| P6 | Agregué tareas, recargué la página y cerré y abrí la pestaña en `localhost:5000` | - | - | Pasó: las tareas permanecieron |
 
 ## Pruebas automáticas
 ```
