@@ -115,69 +115,121 @@ class _TareasPageState extends State<TareasPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colores = Theme.of(context).colorScheme;
+    final pendientes = _tareas.where((t) => !t.completada).length;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Gestor de tareas')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _tituloController,
-              decoration: const InputDecoration(
-                labelText: 'Nueva tarea',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              onPressed: _agregarTarea,
-              icon: const Icon(Icons.add),
-              label: const Text('Agregar tarea'),
-            ),
-            const SizedBox(height: 12),
-            const Text('Mis tareas', style: TextStyle(fontSize: 18)),
-            const SizedBox(height: 8),
-            Expanded(
-              child: _tareas.isEmpty
-                  ? const Center(child: Text('Todavía no hay tareas guardadas'))
-                  : ListView.builder(
-                      itemCount: _tareas.length,
-                      itemBuilder: (context, index) {
-                        final tarea = _tareas[index];
-                        return Card(
-                          child: ListTile(
-                            leading: Checkbox(
-                              value: tarea.completada,
-                              onChanged: (valor) {
-                                if (valor != null) {
-                                  _alternarCompletada(tarea, valor);
-                                }
-                              },
-                            ),
-                            title: Text(tarea.titulo),
-                            subtitle: Text('ID: ${tarea.id}'),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  tooltip: 'Editar',
-                                  icon: const Icon(Icons.edit),
-                                  onPressed: () => _editarTarea(tarea),
-                                ),
-                                IconButton(
-                                  tooltip: 'Eliminar',
-                                  icon: const Icon(Icons.delete_outline),
-                                  onPressed: () => _eliminarTarea(tarea),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+      appBar: AppBar(
+        title: const Text('Gestor de tareas'),
+        centerTitle: true,
+        backgroundColor: colores.primary,
+        foregroundColor: colores.onPrimary,
+      ),
+      // Ancho máximo para que en web y escritorio no se estire a toda la pantalla.
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _tituloController,
+                  onSubmitted: (_) => _agregarTarea(),
+                  decoration: const InputDecoration(
+                    labelText: 'Nueva tarea',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                FilledButton.icon(
+                  onPressed: _agregarTarea,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Agregar tarea'),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Mis tareas', style: TextStyle(fontSize: 18)),
+                    Text(
+                      pendientes == 1
+                          ? '1 pendiente'
+                          : '$pendientes pendientes',
+                      style: TextStyle(color: colores.onSurfaceVariant),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: _tareas.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.checklist,
+                                size: 64,
+                                color: colores.outline,
+                              ),
+                              const SizedBox(height: 8),
+                              const Text('Todavía no hay tareas guardadas'),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: _tareas.length,
+                          itemBuilder: (context, index) {
+                            final tarea = _tareas[index];
+                            return Card(
+                              color: tarea.completada
+                                  ? colores.surfaceContainerHighest
+                                  : null,
+                              child: ListTile(
+                                leading: Checkbox(
+                                  value: tarea.completada,
+                                  onChanged: (valor) {
+                                    if (valor != null) {
+                                      _alternarCompletada(tarea, valor);
+                                    }
+                                  },
+                                ),
+                                title: Text(
+                                  tarea.titulo,
+                                  style: tarea.completada
+                                      ? TextStyle(
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          color: colores.onSurfaceVariant,
+                                        )
+                                      : null,
+                                ),
+                                subtitle: Text('ID: ${tarea.id}'),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      tooltip: 'Editar',
+                                      icon: const Icon(Icons.edit),
+                                      onPressed: () => _editarTarea(tarea),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Eliminar',
+                                      icon: const Icon(Icons.delete_outline),
+                                      onPressed: () => _eliminarTarea(tarea),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
